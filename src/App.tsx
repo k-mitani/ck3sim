@@ -1,82 +1,150 @@
 import { useState } from 'react'
 import './App.css'
+import { Area } from './Game/Area';
+import { Character } from './Game/Character';
+import { GameCore } from './Game/GameCore';
+
+let core = new GameCore();
+await core.initialize();
+
+function renderMap(core: GameCore, mode: MapMode, onAreaClick: (target: Area) => void) {
+  let matrix = [];
+  for (let row = 0; row < 9; row++) {
+    matrix[row] = core.areas
+      .slice(row * 9, row * 9 + 9)
+      .map(area => {
+        let color = "#ccc";
+        let text = area.id;
+        switch (mode) {
+          case MapMode.Terrain:
+            color = area.terrain.color;
+            break;
+          case MapMode.Ruler:
+            color = core.rulerOf(area).color;
+            break;
+          case MapMode.Country:
+            color = core.topRulerOf(area).color;
+            break;
+          case MapMode.Culture:
+            color = core.rulerOf(area).color;
+            text = area.culture;
+            break;
+          case MapMode.Faith:
+            color = core.rulerOf(area).color;
+            text = area.faith;
+            break;
+          case MapMode.Development:
+            color = core.rulerOf(area).color;
+            text = area.development.toString();
+            break;
+          default:
+            break;
+        }
+        return { area, color, text }
+      });
+  }
+  return (
+    <div className="MainMap">
+      {matrix.map((row, i) => (<div key={i}>
+        {row.map(cell => <span
+          className="MainMap-cell"
+          key={cell.area.id}
+          onClick={() => onAreaClick(cell.area)}
+          style={{ backgroundColor: cell.color }}>
+          <span className="MainMap-cell-inner">
+            {cell.text}
+          </span>
+        </span>)}
+      </div>))}
+    </div>
+  );
+}
+
+function renderCharacterDetail(core: GameCore, chara: Character) {
+  let highestTitleArea = "";
+  let highestTitleRank = "";
+  return (
+    <div className="CharacterDetail">
+      <div>
+        <span>{highestTitleArea}{highestTitleRank} {chara.name}</span>
+        <span className='age'>{chara.age}歳</span>
+        <span className='health'>❤</span>
+      </div>
+
+      <div>
+        <span className='relation'>
+          隣国の領主
+        </span>
+        <span className="sexuality">♂♀</span>
+      </div>
+
+      <div className="traits">
+        {chara.traits.map(trait => (<span className='trait'>
+          <span>{trait}</span>
+        </span>))}
+      </div>
+
+      <div>
+        <div className='capability'>
+          <div className='capability-column'><div>外交</div><div>{chara.diplomacy}</div></div>
+          <div className='capability-column'><div>軍事</div><div>{chara.martial}</div></div>
+          <div className='capability-column'><div>管理</div><div>{chara.stewardship}</div></div>
+          <div className='capability-column'><div>策謀</div><div>{chara.intrigue}</div></div>
+          <div className='capability-column'><div>学識</div><div>{chara.learning}</div></div>
+          <div className='capability-column'><div>武勇</div><div>{chara.prowness}</div></div>
+        </div>
+        <div className='personal'>
+          <div>{chara.faith}</div>
+          <div>{chara.culture}</div>
+          <div>{chara.house}</div>
+        </div>
+      </div>
+
+      <div>
+      <div className='asset'>
+          <div className='asset-column'><div>恐怖</div><div>{0}</div></div>
+          <div className='asset-column'><div>資金</div><div>{0}</div></div>
+          <div className='asset-column'><div>名声</div><div>{0}</div></div>
+          <div className='asset-column'><div>献身</div><div>{0}</div></div>
+          <div className='asset-column'><div>兵数</div><div>{chara.getTotalSoldiers(core)}</div></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+enum MapMode {
+  Terrain,
+  Ruler,
+  Country,
+  Culture,
+  Faith,
+  Development
+}
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [mapMode, setMapMode] = useState(MapMode.Ruler);
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
 
-  const characters = [
-    {
-      "name": "alpha",
-      "color": "#800",
-      "master": null,
-      "cells": [
-        "0-0", "1-0", "2-0", "3-0", "4-0", "5-0", "6-0", "7-0", "8-0",
-        "0-1", "1-1", "2-1", "3-1", "4-1", "5-1", "6-1", "7-1", "8-1",
-        "0-2", "1-2", "2-2", "3-2", "4-2", "5-2", "6-2", "7-2", "8-2",
-        "0-3", "1-3", "2-3", "3-3", "4-3", "5-3", "6-3", "7-3", "8-3",
-        "0-4", "1-4", "2-4", "3-4", "4-4", "5-4",
-        "0-5", "1-5", "2-5", "3-5", "4-5",
-      ],
-    },
-    {
-      "name": "beta",
-      "color": "#080",
-      "master": null,
-      "cells": [
-        "6-4", "7-4", "8-4",
-        "5-5", "6-5", "7-5", "8-5",
-        "4-6", "5-6", "6-6", "7-6", "8-6",
-        "4-7", "5-7", "6-7", "7-7", "8-7",
-        "4-8", "5-8", "6-8", "7-8", "8-8",
-      ],
-    },
-    {
-      "name": "charlie",
-      "color": "#008",
-      "master": null,
-      "cells": [
-        "0-6", "1-6", "2-6", "3-6",
-        "0-7", "1-7", "2-7", "3-7",
-        "0-8", "1-8", "2-8", "3-8",
-      ],
-    },
-  ];
-
-  var cellArray = Array<any>();
-  var world = [];
-  for (let y = 0; y < 9; y++) {
-    world[y] = Array<any>();
-    for (let x = 0; x < 9; x++) {
-      const cell = world[y][x] = {
-        name: `${x}-${y}`,
-        id: x + y * 9,
-      };
-      cellArray.push(cell);
-    }
+  function onAreaClick(area: Area) {
+    let chara = core.rulerOf(area);
+    setSelectedCharacter(chara);
   }
-
-  // 支配者マップを構築する。
-  cellArray.forEach(cell => {
-    const owner = characters.find(c => c.cells.indexOf(cell.name) >= 0);
-    cell.owner = owner;
-    cell.color = owner?.color;
-  });
-
-
 
   return (
     <div className="App">
-      <div className="MainMap">
-        {world.map((row, i) => (<div key={i}>
-          {row.map(cell => <span
-            className="MainMap-cell"
-            key={cell.id}
-            style={{ backgroundColor: cell.color }}>
-            <span className="MainMap-cell-inner">
-              {cell.id}&nbsp;
-            </span>
-          </span>)}
-        </div>))}
+      {renderMap(core, mapMode, onAreaClick)}
+      {selectedCharacter && renderCharacterDetail(core, selectedCharacter)}
+      <div>
+        <h3>マップ切り替え（現在: {mapMode}）</h3>
+        <div>
+          <button onClick={() => setMapMode(MapMode.Terrain)}>地形</button>
+          <button onClick={() => setMapMode(MapMode.Ruler)}>領主</button>
+          <button onClick={() => setMapMode(MapMode.Country)}>国</button>
+          <button onClick={() => setMapMode(MapMode.Culture)}>文化</button>
+          <button onClick={() => setMapMode(MapMode.Faith)}>信仰</button>
+          <button onClick={() => setMapMode(MapMode.Development)}>開発度</button>
+        </div>
       </div>
     </div>
   )

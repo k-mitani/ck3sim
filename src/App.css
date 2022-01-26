@@ -18,44 +18,45 @@
   border: 1px solid #000;
   display: inline-block;
   width: 1.5em;
+  height: 1.35em;
+  overflow: hidden;
 }
 
-
-
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.CharacterDetail {
+  border: 1px solid black;
+  margin: 1em;
+}
+.CharacterDetail .trait {
+  border: 1px solid black;
+  margin: 0.2em;
+  width: 4em;
+  height: 3em;
+  line-height: 3em;
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+}
+.CharacterDetail .trait > span {
+  line-height: 1.3em;
+  display: inline-block;
+  vertical-align: middle;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.CharacterDetail .capability-column,
+.CharacterDetail .asset-column {
+  display: inline-block;
+  text-align: center;
+  border: 1px solid black;
+  margin: 0.2em;
+  padding: 0.1em;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.CharacterDetail .capability,
+.CharacterDetail .personal {
+  display: inline-block;
 }
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.CharacterDetail .personal {
+  margin-left: 1em;
 }
 
 button {
